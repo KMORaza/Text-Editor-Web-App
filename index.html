@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Text Editor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .menu-bar {
+            background-color: black;
+            border-bottom: 2px solid white;
+            overflow: hidden;
+            font-family: 'Kanit', sans-serif;
+        }
+        .menu-bar a {
+            float: left;
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+            border-right: 1px solid white;
+            font-family: 'Kanit', sans-serif;
+        }
+        .menu-bar a:hover {
+            background-color: #575757;
+        }
+        .dropdown {
+            float: left;
+            overflow: hidden;
+        }
+        .dropdown .dropbtn {
+            font-size: 16px;
+            border: none;
+            outline: none;
+            color: white;
+            padding: 14px 16px;
+            background-color: inherit;
+            cursor: pointer;
+            font-family: 'Kanit', sans-serif;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            font-family: 'Kanit', sans-serif;
+        }
+        .dropdown-content a {
+            float: none;
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            text-align: left;
+        }
+        .dropdown-content a:hover {
+            background-color: #ddd;
+        }
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+        .dropdown:hover .dropbtn {
+            background-color: #575757;
+        }
+        .editor {
+            border: 1px solid #ccc;
+            padding: 10px;
+            min-height: 200px;
+            width: 100%;
+            box-sizing: border-box;
+            background-color: #fff;
+            margin-top: 10px;
+            font-size: 16px;
+            font-family: 'Kanit', sans-serif;
+        }
+        #file-save-dialog, #replace-dialog, #font-dialog {
+            display: none;
+            position: absolute;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            box-shadow: 0px 4px 8px rgba(0,0,0,0.2);
+            padding: 20px;
+            width: 300px;
+            z-index: 1000;
+            font-family: 'Kanit', sans-serif;
+        }
+        #file-save-dialog input, #replace-dialog input, #font-dialog select {
+            margin-bottom: 10px;
+            width: 100%;
+            font-family: 'Kanit', sans-serif;
+        }
+        label {
+            font-family: 'Kanit', sans-serif;
+            display: block;
+            margin-bottom: 5px;
+        }
+        /* Button styles */
+        button {
+            background-color: #DC143C;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-family: 'Kanit', sans-serif;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 16px; /* Adjust as needed */
+        }
+        button:hover {
+            background-color: #c8102e; /* Darker shade for hover effect */
+        }
+    </style>
+</head>
+<body>
+    <div class="menu-bar">
+        <div class="dropdown">
+            <button class="dropbtn">File</button>
+            <div class="dropdown-content">
+                <a href="#" onclick="openFile()">Open</a>
+                <a href="#" onclick="save()">Save</a>
+                <a href="#" onclick="showSaveAsDialog()">Save As...</a>
+                <a href="#" onclick="printDocument()">Print</a>
+            </div>
+        </div>
+        <div class="dropdown">
+            <button class="dropbtn">Edit</button>
+            <div class="dropdown-content">
+                <a href="#" onclick="formatText('bold')">Bold</a>
+                <a href="#" onclick="formatText('italic')">Italic</a>
+                <a href="#" onclick="formatText('underline')">Underline</a>
+                <a href="#" onclick="undo()">Undo</a>
+                <a href="#" onclick="redo()">Redo</a>
+                <a href="#" onclick="document.execCommand('copy')">Copy</a>
+                <a href="#" onclick="document.execCommand('cut')">Cut</a>
+                <a href="#" onclick="document.execCommand('selectAll')">Select All</a>
+                <a href="#" onclick="document.execCommand('delete')">Delete</a>
+                <a href="#" onclick="showReplaceDialog()">Replace</a>
+            </div>
+        </div>
+        <div class="dropdown">
+            <button class="dropbtn">Format</button>
+            <div class="dropdown-content">
+                <a href="#" onclick="showFontDialog()">Font</a>
+            </div>
+        </div>
+        <div class="dropdown">
+            <button class="dropbtn">Zoom</button>
+            <div class="dropdown-content">
+                <a href="#" onclick="zoomIn()">Zoom In</a>
+                <a href="#" onclick="zoomOut()">Zoom Out</a>
+                <a href="#" onclick="restoreDefaultZoom()">Restore Default Zoom</a>
+            </div>
+        </div>
+    </div>
+    <div id="file-save-dialog">
+        <h3>Save As</h3>
+        <label for="file-name">File Name:</label>
+        <input type="text" id="file-name" placeholder="Untitled">
+        <button onclick="saveAsFile()">Save</button>
+        <button onclick="hideSaveAsDialog()">Cancel</button>
+    </div>
+    <div id="replace-dialog">
+        <h3>Replace</h3>
+        <label for="find-text">Find:</label>
+        <input type="text" id="find-text" placeholder="Text to find">
+        <label for="replace-text">Replace with:</label>
+        <input type="text" id="replace-text" placeholder="Replacement text">
+        <button onclick="replaceText()">Replace All</button>
+        <button onclick="hideReplaceDialog()">Cancel</button>
+    </div>
+    <div id="font-dialog">
+        <h3>Font</h3>
+        <label for="font-family">Font Family:</label>
+        <select id="font-family" onchange="changeFont()">
+            <option value="Arial">Arial</option>
+            <option value="Courier New">Courier New</option>
+            <option value="Georgia">Georgia</option>
+            <option value="Times New Roman">Times New Roman</option>
+            <option value="Verdana">Verdana</option>
+            <option value="Tahoma">Tahoma</option>
+            <option value="Trebuchet MS">Trebuchet MS</option>
+            <option value="Comic Sans MS">Comic Sans MS</option>
+            <option value="Lucida Console">Lucida Console</option>
+            <option value="Microsoft Sans Serif">Microsoft Sans Serif</option>
+            <option value="MS Gothic">MS Gothic</option>
+        </select>
+        <label for="font-size">Font Size:</label>
+        <select id="font-size" onchange="changeFont()">
+            <option value="10px">10px</option>
+            <option value="12px">12px</option>
+            <option value="14px">14px</option>
+            <option value="16px">16px</option>
+            <option value="18px">18px</option>
+            <option value="24px">24px</option>
+            <option value="36px">36px</option>
+        </select>
+        <label for="font-style">Font Style:</label>
+        <select id="font-style" onchange="changeFont()">
+            <option value="normal">Normal</option>
+            <option value="italic">Italic</option>
+            <option value="oblique">Oblique</option>
+        </select>
+        <button onclick="hideFontDialog()">OK</button>
+    </div>
+    <div id="editor" class="editor" contenteditable="true" spellcheck="false"></div>
+
+    <script>
+        let undoStack = [];
+        let redoStack = [];
+        let editor = document.getElementById('editor');
+        let fileSaveDialog = document.getElementById('file-save-dialog');
+        let replaceDialog = document.getElementById('replace-dialog');
+        let fontDialog = document.getElementById('font-dialog');
+        let currentFileName = 'Untitled.txt'; // Default file name with .txt extension
+        let currentFontSize = 16; // Default font size
+        const defaultFontSize = 16; // Default font size
+
+        function saveState() {
+            undoStack.push(editor.innerHTML);
+            redoStack = []; // Clear redo stack on new action
+        }
+
+        function undo() {
+            if (undoStack.length > 0) {
+                redoStack.push(editor.innerHTML);
+                editor.innerHTML = undoStack.pop();
+                placeCaretAtEnd(editor); // Ensures the caret stays at the end
+            }
+        }
+
+        function redo() {
+            if (redoStack.length > 0) {
+                undoStack.push(editor.innerHTML);
+                editor.innerHTML = redoStack.pop();
+                placeCaretAtEnd(editor); // Ensures the caret stays at the end
+            }
+        }
+
+        function formatText(command) {
+            document.execCommand(command, false, null);
+        }
+
+        function placeCaretAtEnd(el) {
+            el.focus();
+            let range = document.createRange();
+            range.selectNodeContents(el);
+            range.collapse(false);
+            let sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+        }
+
+        function saveFile(fileName) {
+            const mimeType = 'text/plain';
+            const content = editor.innerText; // Use innerText for plain text files
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function save() {
+            if (currentFileName === 'Untitled.txt') {
+                // Prompt user for file name if it's the default
+                const newFileName = prompt('Enter file name:', currentFileName.replace('.txt', ''));
+                if (newFileName) {
+                    currentFileName = newFileName + '.txt';
+                } else {
+                    return; // Cancel the save if no name is provided
+                }
+            }
+            saveFile(currentFileName);
+        }
+
+        function showSaveAsDialog() {
+            document.getElementById('file-name').value = currentFileName.replace('.txt', '');
+            fileSaveDialog.style.display = 'block';
+        }
+
+        function hideSaveAsDialog() {
+            fileSaveDialog.style.display = 'none';
+        }
+
+        function saveAsFile() {
+            const fileName = document.getElementById('file-name').value.trim();
+
+            if (!fileName) {
+                alert('Please enter a file name.');
+                return;
+            }
+
+            currentFileName = fileName + '.txt'; // Always save as .txt
+            saveFile(currentFileName);
+            hideSaveAsDialog();
+        }
+
+        function printDocument() {
+            const printWindow = window.open('', '', 'height=600,width=800');
+            printWindow.document.open();
+            printWindow.document.write('<html><head><title>Print</title></head><body>');
+            printWindow.document.write(editor.innerHTML);
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+        }
+
+        function openFile() {
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = '.txt';
+            fileInput.onchange = function(event) {
+                const file = event.target.files[0];
+                if (file && file.type === 'text/plain') {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        editor.innerText = e.target.result;
+                        currentFileName = file.name;
+                    };
+                    reader.readAsText(file);
+                } else {
+                    alert('Please select a valid .txt file.');
+                }
+            };
+            fileInput.click(); // Trigger file input click
+        }
+
+        function showReplaceDialog() {
+            replaceDialog.style.display = 'block';
+        }
+
+        function hideReplaceDialog() {
+            replaceDialog.style.display = 'none';
+        }
+
+        function replaceText() {
+            const findText = document.getElementById('find-text').value;
+            const replaceText = document.getElementById('replace-text').value;
+
+            if (!findText) {
+                alert('Please enter text to find.');
+                return;
+            }
+
+            const editorContent = editor.innerText;
+            const newContent = editorContent.split(findText).join(replaceText);
+
+            editor.innerText = newContent;
+            hideReplaceDialog();
+        }
+
+        function showFontDialog() {
+            fontDialog.style.display = 'block';
+        }
+
+        function hideFontDialog() {
+            fontDialog.style.display = 'none';
+        }
+
+        function changeFont() {
+            const fontFamily = document.getElementById('font-family').value;
+            const fontSize = document.getElementById('font-size').value;
+            const fontStyle = document.getElementById('font-style').value;
+
+            editor.style.fontFamily = fontFamily;
+            editor.style.fontSize = fontSize;
+            editor.style.fontStyle = fontStyle;
+        }
+
+        function zoomIn() {
+            currentFontSize += 2;
+            editor.style.fontSize = currentFontSize + 'px';
+        }
+
+        function zoomOut() {
+            currentFontSize -= 2;
+            editor.style.fontSize = currentFontSize + 'px';
+        }
+
+        function restoreDefaultZoom() {
+            currentFontSize = defaultFontSize;
+            editor.style.fontSize = currentFontSize + 'px';
+        }
+
+        editor.addEventListener('input', saveState);
+    </script>
+</body>
+</html>
