@@ -114,10 +114,10 @@
             font-family: 'Kanit', sans-serif;
             cursor: pointer;
             border-radius: 5px;
-            font-size: 16px; /* Adjust as needed */
+            font-size: 16px; 
         }
         button:hover {
-            background-color: #c8102e; /* Darker shade for hover effect */
+            background-color: #c8102e; 
         }
     </style>
 </head>
@@ -221,20 +221,20 @@
         let fileSaveDialog = document.getElementById('file-save-dialog');
         let replaceDialog = document.getElementById('replace-dialog');
         let fontDialog = document.getElementById('font-dialog');
-        let currentFileName = 'Untitled.txt'; // Default file name with .txt extension
-        let currentFontSize = 16; // Default font size
-        const defaultFontSize = 16; // Default font size
+        let currentFileName = 'Untitled.txt'; 
+        let currentFontSize = 16; 
+        const defaultFontSize = 16; 
 
         function saveState() {
             undoStack.push(editor.innerHTML);
-            redoStack = []; // Clear redo stack on new action
+            redoStack = []; 
         }
 
         function undo() {
             if (undoStack.length > 0) {
                 redoStack.push(editor.innerHTML);
                 editor.innerHTML = undoStack.pop();
-                placeCaretAtEnd(editor); // Ensures the caret stays at the end
+                placeCaretAtEnd(editor); 
             }
         }
 
@@ -242,7 +242,7 @@
             if (redoStack.length > 0) {
                 undoStack.push(editor.innerHTML);
                 editor.innerHTML = redoStack.pop();
-                placeCaretAtEnd(editor); // Ensures the caret stays at the end
+                placeCaretAtEnd(editor); 
             }
         }
 
@@ -262,7 +262,7 @@
 
         function saveFile(fileName) {
             const mimeType = 'text/plain';
-            const content = editor.innerText; // Use innerText for plain text files
+            const content = editor.innerText; 
             const blob = new Blob([content], { type: mimeType });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -274,12 +274,11 @@
 
         function save() {
             if (currentFileName === 'Untitled.txt') {
-                // Prompt user for file name if it's the default
                 const newFileName = prompt('Enter file name:', currentFileName.replace('.txt', ''));
                 if (newFileName) {
                     currentFileName = newFileName + '.txt';
                 } else {
-                    return; // Cancel the save if no name is provided
+                    return; 
                 }
             }
             saveFile(currentFileName);
@@ -302,7 +301,7 @@
                 return;
             }
 
-            currentFileName = fileName + '.txt'; // Always save as .txt
+            currentFileName = fileName + '.txt'; 
             saveFile(currentFileName);
             hideSaveAsDialog();
         }
@@ -335,7 +334,7 @@
                     alert('Please select a valid .txt file.');
                 }
             };
-            fileInput.click(); // Trigger file input click
+            fileInput.click(); 
         }
 
         function showReplaceDialog() {
